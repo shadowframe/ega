@@ -11,6 +11,12 @@ Dieses Verzeichnis enthält die beiden unveränderten DKZ-Quelldateien sowie die
 
 Dotfiles werden nicht als Quelldateien verwendet.
 
+## Quelle der Quelldateien
+
+Die beiden DKZ-Dateien stammen aus dem Downloadportal der Bundesagentur für Arbeit, Bereich „Berufe“:
+
+[DKZ-Downloadportal – Berufe](https://www.arbeitsagentur.de/institutionen/dkz-downloadportal#Berufe)
+
 ## Angewendete Filter
 
 Ein Datensatz wird nur übernommen, wenn alle folgenden Bedingungen erfüllt sind:
