@@ -31,21 +31,41 @@ Die Aufnahmen stammen aus der laufenden TUI und zeigen die wichtigsten Ansichten
 
 ![EGA Terminal – Filteransicht männlich und unter 25](docs/screenshots/egaterm-filtered.png)
 
-### Start
+### Einrichtung und Start
 
-Die virtuelle Python-Umgebung liegt im Datenverzeichnis:
+Die virtuelle Umgebung wird bei einer frischen Projektkopie nicht mitgeliefert. Sie wird einmalig selbst im Verzeichnis `data/.venv` erstellt. Die TUI verwendet ausschließlich die Python-Standardbibliothek; zusätzliche Pakete müssen nicht installiert werden.
+
+Voraussetzung ist Python 3.10 oder neuer. Unter Debian/Ubuntu muss gegebenenfalls zuerst das Modul für virtuelle Umgebungen installiert werden:
+
+```bash
+sudo apt install python3-venv
+```
+
+Danach im Projektverzeichnis die virtuelle Umgebung erstellen und aktivieren:
+
+```bash
+cd ~/Projekte/ega
+python3 -m venv data/.venv
+source data/.venv/bin/activate
+```
+
+Die TUI kann nun gestartet werden:
+
+```bash
+python egaterm.py
+```
+
+Alternativ kann die Umgebung auch ohne Aktivierung direkt verwendet werden:
 
 ```bash
 cd ~/Projekte/ega
 data/.venv/bin/python egaterm.py
 ```
 
-Alternativ:
+Wenn die Umgebung bereits existiert, muss der Erstellungsschritt nicht wiederholt werden. Zum Verlassen einer aktivierten Umgebung:
 
 ```bash
-cd ~/Projekte/ega
-source data/.venv/bin/activate
-python egaterm.py
+deactivate
 ```
 
 Bedienung:
