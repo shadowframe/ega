@@ -1,134 +1,137 @@
-# EGA Terminal-Anwendung
+# egaterm – Terminalprogramm für den Entgeltatlas
 
-Dieses Projekt stellt eine terminalbasierte Oberfläche für Berufsdaten und Entgeltinformationen des Entgeltatlas der Bundesagentur für Arbeit bereit.
+egaterm ist eine kleine Terminal-Anwendung für Berufsdaten und Entgeltinformationen aus dem Entgeltatlas der Bundesagentur für Arbeit.
 
-## Projekt beziehen
+Die Anwendung ist für den schnellen Blick gedacht: Beruf suchen, Datensatz auswählen und Median sowie Quartile anzeigen lassen.
 
-Das Repository kann in ein frei wählbares Arbeitsverzeichnis geklont werden:
+## Schnellstart
+
+Voraussetzung ist Python 3.10 oder neuer.
 
 ```bash
 git clone https://github.com/shadowframe/ega.git
 cd ega
+python3 -m venv data/.venv
+data/.venv/bin/python egaterm.py
 ```
 
-Alle folgenden Befehle werden aus dem Projektverzeichnis ausgeführt.
+Die TUI verwendet nur die Python-Standardbibliothek. Zusätzliche Pakete sind nicht nötig.
 
-## Terminal-Anwendung `egaterm.py`
-
-`egaterm.py` lädt `data/ega.json` und bietet eine interaktive TUI mit:
-
-- Autosuggest-Suche nach Berufsbezeichnungen
-- Auswahl von Berufen mit vorhandenen Entgeltdaten
-- Geschlechtsfilter: `alle`, `männlich`, `weiblich`
-- Altersgruppenfilter: `alle`, `<25`, `25-54`, `>54`
-- Anzeige von Median, unterem Quartil und oberem Quartil
-- grafischer Darstellung der Abstände zwischen Q25, Median und Q75
-- mehrzeiligem ASCII-Schriftlogo `egaTERM` im Farbschema der Anwendung
-Die Visualisierung stellt den Median als Marker zwischen dem unteren und oberen Quartil dar. Dadurch ist direkt erkennbar, ob der Median näher am unteren oder am oberen Quartil liegt. Die beiden Abstände werden zusätzlich als Eurobeträge angezeigt.
-
-## Screenshots
-
-Die Aufnahmen stammen aus der laufenden TUI und zeigen die wichtigsten Ansichten.
-
-### Startansicht mit Autosuggest
-
-![EGA Terminal – Startansicht mit Autosuggest](docs/screenshots/egaterm-default.png)
-
-### Ausgewählter Beruf mit Entgeltkarte
-
-![EGA Terminal – ausgewählter Beruf mit Median und Quartilen](docs/screenshots/egaterm-selected.png)
-
-### Geschlechts- und Altersfilter
-
-![EGA Terminal – Filteransicht männlich und unter 25](docs/screenshots/egaterm-filtered.png)
-
-### Einrichtung und Start
-
-Die virtuelle Umgebung wird bei einer frischen Projektkopie nicht mitgeliefert. Sie wird einmalig selbst im Verzeichnis `data/.venv` erstellt. Die TUI verwendet ausschließlich die Python-Standardbibliothek; zusätzliche Pakete müssen nicht installiert werden.
-
-Voraussetzung ist Python 3.10 oder neuer. Unter Debian/Ubuntu muss gegebenenfalls zuerst das Modul für virtuelle Umgebungen installiert werden:
+Falls `python3 -m venv` auf Debian oder Ubuntu wegen `ensurepip` fehlschlägt, installiere zuerst das passende Paket:
 
 ```bash
 sudo apt install python3-venv
 ```
 
-Falls `python3 -m venv` danach weiterhin mit einer fehlenden `ensurepip`-Komponente abbricht, installiere das versionsspezifische Paket, passend zur installierten Python-Version, zum Beispiel:
+Bei einer versionsspezifischen Python-Installation kann außerdem ein Paket wie `python3.14-venv` erforderlich sein.
 
-```bash
-sudo apt install python3.14-venv
-```
+## Die Terminal-Oberfläche
 
-Danach im Projektverzeichnis die virtuelle Umgebung erstellen und aktivieren:
+`egaterm.py` lädt `data/ega.json` und bietet:
 
-```bash
-python3 -m venv data/.venv
-source data/.venv/bin/activate
-```
+- Suche mit Autosuggest nach Berufsbezeichnungen
+- Auswahl eines Berufs mit vorhandenen Entgeltdaten
+- Filter nach Geschlecht: `alle`, `männlich`, `weiblich`
+- Filter nach Altersgruppe: `alle`, `<25`, `25-54`, `>54`
+- Median, unteres Quartil und oberes Quartil
+- eine grafische Darstellung der Abstände zwischen Q25, Median und Q75
+- das mehrzeilige `egaTERM`-Logo
 
-Die TUI kann nun gestartet werden:
+Der Median wird als Marker zwischen dem unteren und oberen Quartil dargestellt. Zusätzlich zeigt die Karte die beiden Abstände als Eurobeträge.
 
-```bash
-python egaterm.py
-```
+### Bedienung
 
-Alternativ kann die Umgebung auch ohne Aktivierung direkt verwendet werden:
+| Taste | Funktion |
+|---|---|
+| Text eingeben | Beruf suchen |
+| `↑` / `↓` | Vorschlag auswählen |
+| `Enter` | Datensatz auswählen |
+| `1` | Geschlecht: alle |
+| `2` | Geschlecht: männlich |
+| `3` | Geschlecht: weiblich |
+| `4` | Alter: alle |
+| `5` | Alter: <25 |
+| `6` | Alter: 25-54 |
+| `7` | Alter: >54 |
+| `Ctrl+U` | Suchfeld leeren |
+| `0` | Anwendung beenden |
+| `q` | normales Suchzeichen |
 
-```bash
-data/.venv/bin/python egaterm.py
-```
+`q` beendet die Anwendung nicht. Zum Beenden ist ausschließlich `0` vorgesehen.
 
-Wenn die Umgebung bereits existiert, muss der Erstellungsschritt nicht wiederholt werden. Zum Verlassen einer aktivierten Umgebung:
+### Screenshots
 
-```bash
-deactivate
-```
+Die Screenshots stammen aus der laufenden TUI. Sie zeigen die wichtigsten Ansichten und bleiben Teil der Projektdokumentation.
 
-Bedienung:
+#### Startansicht mit Autosuggest
 
-- Text eingeben: Autosuggest nach Berufsbezeichnung filtern
-- `Ctrl+U`: Suchfeld leeren
-- `1`: Geschlecht `alle`
-- `2`: Geschlecht `männlich`
-- `3`: Geschlecht `weiblich`
-- `4`: Altersgruppe `alle`
-- `5`: Altersgruppe `<25`
-- `6`: Altersgruppe `25-54`
-- `7`: Altersgruppe `>54`
-- `0`: Anwendung jederzeit beenden
-- `q`: normales Suchzeichen, keine Beenden-Funktion
-- `↑` / `↓`: sichtbaren Vorschlag auswählen
-- `Enter`: Datensatz auswählen
+![EGA Terminal – Startansicht mit Autosuggest](docs/screenshots/egaterm-default.png)
 
-Die TUI benötigt keine zusätzlichen Python-Bibliotheken. Sie verwendet ausschließlich die Python-Standardbibliothek, insbesondere `curses`.
+#### Ausgewählter Beruf mit Entgeltkarte
 
-Self-Test:
+![EGA Terminal – ausgewählter Beruf mit Median und Quartilen](docs/screenshots/egaterm-selected.png)
+
+#### Geschlechts- und Altersfilter
+
+![EGA Terminal – Filteransicht männlich und unter 25](docs/screenshots/egaterm-filtered.png)
+
+### Self-Test
 
 ```bash
 data/.venv/bin/python egaterm.py --self-test
 ```
 
-## Verzeichnis `data/`
+## Daten aktualisieren
 
-Die Datenaufbereitung und die Entgeltatlas-Abfragen sind im Verzeichnis `data/` gekapselt. Die ausführliche Dokumentation befindet sich hier:
+Die mitgelieferte `data/ega.json` reicht für den normalen Start aus. Wenn die Quelldaten oder Entgeltwerte neu erzeugt werden sollen, kann die komplette Datenpipeline gestartet werden:
 
-[`data/README.md`](data/README.md)
+```bash
+data/.venv/bin/python data/main.py --plain
+```
 
-Dort werden Quelldateien, Filterregeln, JSON-Strukturen, `.venv`-Einrichtung und Crawler ausführlich beschrieben. Die TUI selbst ist in dieser Root-README dokumentiert.
+Dabei passiert Folgendes:
 
-### Dateien und Skripte
+1. Die aktuellen DKZ-Dateien werden geladen und geprüft.
+2. Daraus entsteht eine bereinigte Berufeliste.
+3. Der Entgeltatlas-Client liest den öffentlichen Client-Key automatisch von der Entgeltatlas-Webseite.
+4. Die Entgeltwerte werden abgefragt und in `data/ega.json` geschrieben.
 
-- `data/DKZ_Berufe_Zuordnung_Berufsgattung.xlsx` – Zuordnung von Berufen zu berufskundlichen Gruppen und KldB-Berufsgattungen.
-- `data/DKZ_alle_Berufe_gueltig_ungueltig.xml` – vollständige DKZ-Berufeliste mit Zuständen und Gültigkeitsdaten.
-- `data/create_data.py` – erzeugt aus XLSX und XML die bereinigte Berufeliste.
-- `data/catch_source.py` – lädt die offiziellen DKZ-Quelldateien.
-- `data/main.py` – startet die vollständige Datenpipeline als Batchkette.
-- `data/berufe_bereinigt.json` – Ergebnis der DKZ-Datenaufbereitung.
-- `data/crawler.py` – ruft Entgeltwerte des Entgeltatlas für die KldB-Schlüssel ab.
-- `data/entgeltatlas_client.py` – liest den öffentlichen Client-Key aus der aktuellen Entgeltatlas-Webkonfiguration.
-- `data/ega.json` – Berufeliste mit ergänzten Entgeltatlasdaten.
-- `data/.venv/` – virtuelle Python-Umgebung für die lokalen Skripte.
+Du musst dich nicht anmelden und keinen Key aus einer Browsersitzung kopieren. Der Key wird nur während des Laufs verwendet. Er wird weder angezeigt noch in einer Datei gespeichert.
 
-### Datenpipeline
+Eine ausführliche Beschreibung der Datenpipeline steht in [`data/README.md`](data/README.md).
+
+## Nur einzelne Schritte ausführen
+
+Bereinigte Berufeliste erzeugen:
+
+```bash
+cd data
+.venv/bin/python create_data.py
+```
+
+Entgeltwerte abrufen:
+
+```bash
+cd data
+.venv/bin/python crawler.py
+```
+
+Danach die Oberfläche wieder aus dem Projektverzeichnis starten:
+
+```bash
+data/.venv/bin/python egaterm.py
+```
+
+Für Tests oder einen expliziten alternativen Client-Key kann `ENTGELTATLAS_API_KEY` gesetzt werden:
+
+```bash
+export ENTGELTATLAS_API_KEY='...'
+data/.venv/bin/python data/crawler.py
+```
+
+Der frühere Parameter `--api-key` wird bewusst nicht verwendet, damit der Wert nicht in Shell-History oder Prozesslisten landet.
+
+## Projektstruktur
 
 ```text
 DKZ XLSX + DKZ XML
@@ -149,42 +152,13 @@ ega.json
 egaterm.py
 ```
 
-### Daten neu erzeugen
+Wichtige Dateien:
 
-Bereinigte Berufeliste erstellen:
-
-```bash
-cd data
-.venv/bin/python create_data.py
-```
-
-Entgeltatlasdaten abrufen. Der öffentliche Client-Key wird automatisch aus der aktuellen Entgeltatlas-Webseite gelesen. Eine manuelle Eingabe ist nicht erforderlich:
-
-```bash
-cd data
-.venv/bin/python crawler.py
-```
-
-Auch die vollständige Batchkette (`data/main.py`) holt den Key automatisch, bevor
-die erste Stufe startet. Der Key wird nur im Speicher beziehungsweise in der
-Umgebung der gestarteten Unterprozesse verwendet und niemals ausgegeben oder in
-einer Datei gespeichert.
-
-Für reproduzierbare Tests oder einen abweichenden Client-Key kann die automatische
-Ermittlung optional durch die Umgebungsvariable überschrieben werden:
-
-```bash
-export ENTGELTATLAS_API_KEY='...'
-.venv/bin/python crawler.py
-```
-
-Der frühere Parameter `--api-key` wird bewusst nicht mehr angeboten, damit der
-Key nicht in Shell-History oder Prozesslisten landet.
-
-Danach kann die TUI erneut gestartet werden:
-
-```bash
-data/.venv/bin/python egaterm.py
-```
-
-Die Quelldateien werden von den Skripten nicht verändert. Dotfiles im Datenverzeichnis werden nicht als Datenquellen verarbeitet.
+- `egaterm.py` – interaktive Terminal-Oberfläche
+- `data/main.py` – komplette Datenpipeline
+- `data/catch_source.py` – lädt die offiziellen DKZ-Quelldateien
+- `data/create_data.py` – bereinigt und verbindet die DKZ-Daten
+- `data/entgeltatlas_client.py` – holt den öffentlichen Client-Key
+- `data/crawler.py` – ergänzt die Berufeliste um Entgeltwerte
+- `data/berufe_bereinigt.json` – bereinigte Berufeliste
+- `data/ega.json` – Berufeliste mit Entgeltwerten

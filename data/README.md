@@ -1,123 +1,195 @@
-# Datenaufbereitung der Berufeliste
+# Datenpipeline
 
-Dieses Verzeichnis enthält die beiden unveränderten DKZ-Quelldateien sowie die daraus erzeugte, bereinigte Berufeliste.
+Dieses Verzeichnis enthält die Quelldaten, die Aufbereitung und den Crawler für die Entgeltwerte.
 
-## Dateien
+Wenn du egaterm nur starten möchtest, brauchst du diese Datei nicht. Die wichtigsten Befehle stehen in der [Root-README](../README.md).
 
-- `DKZ_Berufe_Zuordnung_Berufsgattung.xlsx` – Zuordnung der Berufe zu den berufskundlichen Gruppen und Angabe des berufskundlichen Typs.
-- `DKZ_alle_Berufe_gueltig_ungueltig.xml` – vollständige DKZ-Berufeliste einschließlich Zuständen und Gültigkeitszeiträumen.
-- `create_data.py` – reproduzierbares Erzeugungsprogramm.
-- `catch_source.py` – lädt die beiden offiziellen DKZ-Quelldateien atomar herunter und validiert sie.
-- `main.py` – führt Download, Bereinigung und Entgeltatlas-Crawler als fail-fast Batchkette aus.
-- `entgeltatlas_client.py` – holt den öffentlichen Client-Key aus der Entgeltatlas-Webkonfiguration.
-- `berufe_bereinigt.json` – erzeugtes Ergebnis.
+## Was die Pipeline macht
 
-Dotfiles werden nicht als Quelldateien verwendet.
+`main.py` führt die Schritte in dieser Reihenfolge aus:
 
-## Quelle der Quelldateien
+1. `catch_source.py` lädt die offiziellen DKZ-Dateien.
+2. `create_data.py` filtert und verbindet die Berufsdaten.
+3. `entgeltatlas_client.py` holt den öffentlichen Client-Key der Entgeltatlas-Webseite.
+4. `crawler.py` fragt die Entgeltwerte ab und schreibt `ega.json`.
 
-Die beiden DKZ-Dateien stammen aus dem Downloadportal der Bundesagentur für Arbeit, Bereich „Berufe“:
+Die Pipeline stoppt, sobald ein Schritt fehlschlägt. Dadurch wird nicht stillschweigend mit unvollständigen Daten weitergearbeitet.
 
-[DKZ-Downloadportal – Berufe](https://www.arbeitsagentur.de/institutionen/dkz-downloadportal#Berufe)
+## Einmalig einrichten
 
-Die automatisierte Beschaffung verwendet direkt diese offiziellen REST-URLs:
+Die Skripte verwenden nur die Python-Standardbibliothek. Eine virtuelle Umgebung hält die Ausführung trotzdem sauber vom System-Python getrennt.
 
-- XML: `https://rest.arbeitsagentur.de/infosysbub/download-portal-rest/ct/dkz-downloads/DKZ_alle_Berufe_gueltig_ungueltig.xml`
-- XLSX: `https://rest.arbeitsagentur.de/infosysbub/download-portal-rest/ct/dkz-downloads/DKZ_Berufe_Zuordnung_Berufsgattung.xlsx`
+Mit Python:
 
-`catch_source.py` schreibt die Antworten zunächst in temporäre `.part`-Dateien, validiert XML bzw. XLSX und ersetzt die bisherigen Quelldateien erst danach atomar.
+```bash
+cd data
+python3 -m venv .venv
+```
 
-## Angewendete Filter
-
-Ein Datensatz wird nur übernommen, wenn alle folgenden Bedingungen erfüllt sind:
-
-1. Die berufskundliche Gruppe (`BKGR Beruf` bzw. `berufskundlicheGruppe`) ist eine der Gruppen `1910`, `2910`, `2920`, `2930`, `2940`, `2950`, `3810`, `3910`, `3920`, `4910` oder `7910`.
-2. Der Zustand ist `E`. In der XLSX ist dies die Auswahl der gewünschten Endpunkte.
-3. Der berufskundliche Typ ist `t` (Tätigkeiten). Der Wert kommt aus der XLSX; die XML-Datei enthält dieses Merkmal nicht als eigenes Attribut.
-4. `gueltigBis` ist leer oder liegt am Stichtag bzw. danach. Einträge mit einem Ablaufdatum vor dem Stichtag werden ausgeschlossen.
-
-Die XML-Daten sind für Bezeichnung, ID, Codenummer und Gültigkeitsdaten führend. Die XLSX wird über `Codenr. Beruf` mit der XML-Datei verknüpft.
-
-## Einrichtung mit `.venv`
-
-Das Programm benötigt keine externen Python-Pakete. Trotzdem wird eine virtuelle Umgebung verwendet, damit die Ausführung vom System-Python getrennt bleibt.
-
-Mit `uv`:
+Alternativ mit `uv`:
 
 ```bash
 cd data
 uv venv .venv
 ```
 
-Falls `.venv` bereits existiert und neu erstellt werden soll:
+Falls die virtuelle Umgebung schon existiert, muss dieser Schritt nicht wiederholt werden.
+
+## Die komplette Pipeline starten
+
+Aus dem Projektverzeichnis:
 
 ```bash
-uv venv --clear .venv
+data/.venv/bin/python data/main.py --plain
 ```
 
-Alternativ – sofern das Betriebssystemmodul für virtuelle Umgebungen installiert ist:
-
-```bash
-python3 -m venv .venv
-```
-
-## Gesamte Batchkette
-
-`main.py` führt alle drei Schritte in der richtigen Reihenfolge aus und bricht bei einem Fehler sofort ab:
-
-1. `entgeltatlas_client.py` liest den öffentlichen Client-Key aus der aktuellen Entgeltatlas-Webseite.
-2. `catch_source.py` lädt und validiert XML/XLSX.
-3. `create_data.py` erzeugt `berufe_bereinigt.json`.
-4. `crawler.py` ergänzt die Entgeltatlas-Werte und schreibt `ega.json`.
-
-Der Key wird automatisch geholt. Die vollständige Pipeline kann daher direkt gestartet werden:
+Oder direkt aus `data/`:
 
 ```bash
 cd data
-source .venv/bin/activate
-python main.py --reference-date 2026-08-14
+.venv/bin/python main.py --plain
 ```
 
-Die Batchausgabe zeigt die drei Stufen, Laufzeiten und Unterprozessausgaben. Der
-Schlüssel selbst wird niemals ausgegeben oder in einer Datei gespeichert. Er wird
-nur im Speicher und in der Umgebung der gestarteten Unterprozesse verwendet. Für
-eine nichtfarbige Terminalausgabe kann `--plain` ergänzt werden. Optionen wie
-`--timeout`, `--retries` und `--workers` werden an die jeweiligen Pipeline-Stufen
-weitergereicht.
-
-## Liste erzeugen
-
-Direkt aus dem Verzeichnis:
+Optional kann ein fester Stichtag für die DKZ-Bereinigung angegeben werden:
 
 ```bash
+data/.venv/bin/python data/main.py \
+  --reference-date 2026-08-14 \
+  --plain
+```
+
+Verfügbare Netzwerkoptionen:
+
+```text
+--timeout SECONDS   Zeitlimit pro Anfrage
+--retries COUNT     Wiederholungen bei Netzwerkfehlern
+--workers COUNT     parallele Entgeltatlas-Anfragen
+```
+
+Die Pipeline schreibt beziehungsweise aktualisiert:
+
+- `data/DKZ_alle_Berufe_gueltig_ungueltig.xml`
+- `data/DKZ_Berufe_Zuordnung_Berufsgattung.xlsx`
+- `data/berufe_bereinigt.json`
+- `data/ega.json`
+
+Die Quelldateien werden vor dem Ersetzen geprüft. Downloads landen zunächst in temporären `.part`-Dateien.
+
+## Den API-Key musst du nicht kopieren
+
+Die Entgeltatlas-Webanwendung stellt ihren öffentlichen Client-Key in ihrer HTML-Konfiguration bereit. Der Entgeltatlas-Client von egaterm lädt die Webseite und liest dort `infosysbubLibConfig.clientId` aus.
+
+Das bedeutet:
+
+- keine Browser-Session nötig
+- keine Anmeldung nötig
+- keine Cookies nötig
+- keine manuelle Key-Eingabe nötig
+- kein Key wird gespeichert oder ausgegeben
+
+Der Key wird nur im Speicher gehalten und für die gestarteten Unterprozesse bereitgestellt.
+
+Für Tests oder einen alternativen Wert kann die automatische Ermittlung überschrieben werden:
+
+```bash
+export ENTGELTATLAS_API_KEY='...'
+data/.venv/bin/python data/crawler.py
+```
+
+Der alte Parameter `--api-key` ist absichtlich entfernt. Ein Key als Kommandozeilenargument kann in der Shell-History oder in Prozesslisten auftauchen.
+
+## Einzelne Schritte
+
+### Berufeliste neu erzeugen
+
+```bash
+cd data
 .venv/bin/python create_data.py
 ```
 
-Oder nach Aktivierung der Umgebung:
+Die Eingabedateien sind:
 
-```bash
-source .venv/bin/activate
-python create_data.py
-```
+- `DKZ_alle_Berufe_gueltig_ungueltig.xml`
+- `DKZ_Berufe_Zuordnung_Berufsgattung.xlsx`
 
-Das Programm schreibt standardmäßig `berufe_bereinigt.json`. Der Stichtag ist standardmäßig das aktuelle Datum. Für reproduzierbare Ergebnisse kann er ausdrücklich gesetzt werden:
+Für reproduzierbare Ergebnisse kann der Stichtag gesetzt werden:
 
 ```bash
 .venv/bin/python create_data.py --reference-date 2026-08-14
 ```
 
-Die Pfade und der Name der Ausgabedatei können bei Bedarf überschrieben werden:
+### Entgeltwerte neu abrufen
 
 ```bash
-.venv/bin/python create_data.py \
-  --xlsx DKZ_Berufe_Zuordnung_Berufsgattung.xlsx \
-  --xml DKZ_alle_Berufe_gueltig_ungueltig.xml \
-  --output berufe_bereinigt.json
+cd data
+.venv/bin/python crawler.py
 ```
 
-## Aufbau der JSON-Datei
+Der Crawler verwendet `berufe_bereinigt.json` und schreibt standardmäßig `ega.json`.
 
-Die JSON-Datei enthält neben der Liste `berufe` die verwendeten Filter, den Stichtag und die Anzahl der Datensätze. Jeder Beruf enthält unter anderem:
+Eindeutige KldB-Schlüssel werden nur einmal abgefragt. Standardmäßig laufen acht Anfragen parallel:
+
+```bash
+.venv/bin/python crawler.py --workers 4 --timeout 60 --retries 5
+```
+
+### TUI starten
+
+```bash
+data/.venv/bin/python egaterm.py
+```
+
+## Welche Daten übernommen werden
+
+`create_data.py` übernimmt nur Datensätze, die alle Bedingungen erfüllen:
+
+- berufskundliche Gruppe: `1910`, `2910`, `2920`, `2930`, `2940`, `2950`, `3810`, `3910`, `3920`, `4910` oder `7910`
+- Zustand: `E` für Endpunkt
+- berufskundlicher Typ: `t` für Tätigkeit
+- `gueltigBis` ist leer oder liegt am Stichtag beziehungsweise danach
+
+Die XML-Datei ist führend für Bezeichnung, ID, Codenummer und Gültigkeitsdaten. Die XLSX-Datei liefert die Zuordnung zur berufskundlichen Gruppe und zum berufskundlichen Typ.
+
+## Entgeltatlas-Abfragen
+
+Der Crawler verwendet diesen offiziellen API-Endpunkt:
+
+```text
+https://rest.arbeitsagentur.de/infosysbub/entgeltatlas/pc/v1/entgelte/{kldb}
+```
+
+Alle Abfragen verwenden:
+
+- Region Deutschland (`r=1`)
+- Branche Gesamt (`b=1`)
+
+Für jeden Beruf werden Median, unteres Quartil, oberes Quartil und, sofern vorhanden, die Besetzung gespeichert. Die Werte werden nach Geschlecht und Altersgruppe abgelegt:
+
+- Geschlecht: `alle`, `männlich`, `weiblich`
+- Alter: `alle`, `<25`, `25-54`, `>54`
+
+Beispiel für den Median von Männern zwischen 25 und 54 Jahren:
+
+```text
+beruf.ega.werte.geschlecht.männlich.25-54.median
+```
+
+Die API kann für einzelne Kombinationen negative Statuswerte liefern, wenn zu wenige oder keine Daten vorhanden sind. Diese Werte werden unverändert gespeichert.
+
+## Quelldateien
+
+Die DKZ-Dateien stammen aus dem offiziellen [DKZ-Downloadportal der Bundesagentur für Arbeit](https://www.arbeitsagentur.de/institutionen/dkz-downloadportal#Berufe).
+
+Die Pipeline verwendet direkt:
+
+- XML: `https://rest.arbeitsagentur.de/infosysbub/download-portal-rest/ct/dkz-downloads/DKZ_alle_Berufe_gueltig_ungueltig.xml`
+- XLSX: `https://rest.arbeitsagentur.de/infosysbub/download-portal-rest/ct/dkz-downloads/DKZ_Berufe_Zuordnung_Berufsgattung.xlsx`
+
+Dotfiles werden nicht als Datenquellen verarbeitet.
+
+## Aufbau von `ega.json`
+
+Die Datei enthält neben `berufe` auch Informationen über Quelle, Filter und Statistik. Jeder Beruf enthält unter anderem:
 
 - `id`
 - `codenr`
@@ -126,78 +198,17 @@ Die JSON-Datei enthält neben der Liste `berufe` die verwendeten Filter, den Sti
 - `zustand`
 - `berufskundlicheGruppe`
 - `berufskundlicherTyp`
-- `berufskundlicheGattung` mit KldB-Codenummer sowie den beiden Bezeichnungen aus der XLSX (`bezeichnung` und `bezeichnungStatistik`)
+- `berufskundlicheGattung`
 - `gueltigVon`
 - `gueltigBis`
+- `ega`
 
-Die Ausgabe wird nach Codenummer und ID sortiert. Die Quelldateien werden nicht verändert.
+Unter `ega` stehen der verwendete KldB-Schlüssel und die Entgeltwerte.
 
-## Entgeltatlas-Crawler
+## Wenn etwas nicht funktioniert
 
-`crawler.py` erweitert `berufe_bereinigt.json` um Daten aus dem Entgeltatlas der Bundesagentur für Arbeit und schreibt `ega.json`.
-
-Verwendet wird die aktuelle Entgeltatlas-API:
-
-```text
-https://rest.arbeitsagentur.de/infosysbub/entgeltatlas/pc/v1/entgelte/{kldb}
-```
-
-Der Crawler fragt immer für Deutschland (`r=1`) und die Branche Gesamt (`b=1`) ab. Für jeden Beruf werden folgende Werte gespeichert:
-
-- Median (`median`)
-- unteres Quartil (`unteresQuartil`)
-- oberes Quartil (`oberesQuartil`)
-- Besetzung (`besetzung`, sofern von der API geliefert)
-
-Die Werte werden vollständig für jede Kombination aus `geschlecht` (`alle`, `männlich`, `weiblich`) und `altergruppe` (`alle`, `<25`, `25-54`, `>54`) abgelegt. Beispielpfad für den Median von Männern zwischen 25 und 54 Jahren: `beruf.ega.werte.geschlecht.männlich.25-54.median`. Der Crawler verwendet den fünfstelligen KldB-Schlüssel aus `berufskundlicheGattung.codenr`. Die API liefert dafür ohne den Parameter `l` alle vier Altersgruppen und drei Geschlechter der zugehörigen Leistungsstufe.
-
-### Automatischer API-Key-Client
-
-Die Entgeltatlas-Webanwendung veröffentlicht ihren Client-Key in der HTML-Konfiguration
-unter `infosysbubLibConfig.clientId`. `entgeltatlas_client.py` lädt deshalb zur Laufzeit:
-
-```text
-https://web.arbeitsagentur.de/entgeltatlas/
-```
-
-und verwendet den gefundenen Wert intern als `X-API-Key` für die offiziellen REST-Anfragen.
-Das ist keine Browser-Session und keine Benutzeranmeldung. Cookies oder persönliche
-Zugangsdaten werden nicht benötigt. Der Key wird nicht ausgegeben, nicht in Dateien
-geschrieben und nicht als CLI-Argument weitergereicht.
-
-Der automatische Abruf kann für Tests oder einen expliziten alternativen Wert durch
-die Umgebungsvariable überschrieben werden:
-
-```bash
-export ENTGELTATLAS_API_KEY='...'
-```
-
-Der aktuell von der Entgeltatlas-Webanwendung verwendete öffentliche Client-Key wird aus der geladenen Webseite beziehungsweise deren Konfiguration entnommen.
-
-### Crawler ausführen
-
-```bash
-cd data
-source .venv/bin/activate
-python crawler.py
-```
-
-Die Ausgabe wird nach `berufe_bereinigt.json`-Daten plus Entgeltwerten in `ega.json` geschrieben. Für die Netzwerkbelastung werden eindeutige KldB-Schlüssel nur einmal abgefragt und standardmäßig acht parallele Anfragen verwendet. Optionen:
-
-```bash
-python crawler.py --workers 4 --timeout 60 --retries 5
-python crawler.py --output ega.json
-```
-
-Der frühere Parameter `--api-key` wurde entfernt, damit Schlüssel nicht in der
-Shell-History oder Prozesslisten erscheinen.
-
-`ega.json` enthält zusätzlich:
-
-- `summe.kldb3stellig` – Anzahl der Berufe mit dreistelligem KldB-Schlüssel
-- `summe.kldb5stellig` – Anzahl der Berufe mit fünfstelligem KldB-Schlüssel
-- `statistik.eindeutigeKldb3Stellig` und `statistik.eindeutigeKldb5Stellig` – Anzahl der tatsächlich abgefragten eindeutigen Schlüssel
-
-Die API kann einzelne Werte als negative Statuscodes liefern, zum Beispiel für zu wenige oder nicht vorhandene Daten. Diese Werte werden unverändert im jeweiligen Entgeltfeld gespeichert.
-
-Die Terminaloberfläche ist im Projektstamm dokumentiert: [README.md](../README.md).
+- **`venv` kann nicht erstellt werden:** Installiere unter Debian oder Ubuntu `python3-venv`, bei mehreren Python-Versionen eventuell das passende versionsspezifische Paket.
+- **Key-Fehler:** Prüfe zuerst, ob die Entgeltatlas-Webseite erreichbar ist. Alternativ kann testweise `ENTGELTATLAS_API_KEY` gesetzt werden.
+- **API-Fehler:** Erhöhe `--timeout` oder `--retries` und reduziere bei Bedarf `--workers`.
+- **Keine Daten für einen Beruf:** Die API kann bei kleinen Fallzahlen negative Statuswerte zurückgeben. Das ist nicht automatisch ein Fehler im Crawler.
+- **TUI startet nicht:** Prüfe, ob `data/ega.json` vorhanden ist und ob du die virtuelle Umgebung mit dem Python-Aufruf aus dem Projekt verwendest.
