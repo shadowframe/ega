@@ -10,6 +10,11 @@ import sys
 import time
 from pathlib import Path
 
+try:
+    from .entgeltatlas_client import ClientKeyError, resolve_api_key
+except ImportError:  # Direkter Aufruf: python data/main.py
+    from entgeltatlas_client import ClientKeyError, resolve_api_key
+
 DATA_DIR = Path(__file__).resolve().parent
 
 
@@ -108,8 +113,10 @@ def main() -> int:
     args = parser.parse_args()
     if args.timeout <= 0 or args.retries < 0 or args.workers < 1:
         parser.error("timeout muss > 0, retries >= 0 und workers >= 1 sein")
-    if not os.environ.get("ENTGELTATLAS_API_KEY"):
-        parser.error("ENTGELTATLAS_API_KEY fehlt; wird nur aus der Umgebung gelesen")
+    try:
+        api_key = resolve_api_key(timeout=args.timeout)
+    except ClientKeyError as error:
+        parser.error(str(error))
 
     console = Console(color=False if args.plain else None)
     commands = build_commands(DATA_DIR, args.reference_date, args.timeout, args.retries, args.workers)
@@ -118,6 +125,7 @@ def main() -> int:
     console.line(f"{console.dim}Arbeitsverzeichnis: {DATA_DIR}{console.reset}")
     console.line(f"{console.dim}API-Key: gesetzt (Wert wird nicht angezeigt){console.reset}")
     env = os.environ.copy()
+    env["ENTGELTATLAS_API_KEY"] = api_key
     try:
         for number, (command, title) in enumerate(zip(commands, titles), start=1):
             run_stage(command, title, number, console, env)

@@ -3,7 +3,8 @@
 
 Die API liefert für einen fünfstelligen KldB-Schlüssel ohne den Parameter
 ``l`` alle Geschlechts- und Altersgruppenwerte der zugehörigen Leistungsstufe.
-Der API-Schlüssel wird aus der Umgebungsvariable ENTGELTATLAS_API_KEY gelesen.
+Der öffentliche Client-Key wird automatisch aus der Web-Konfiguration gelesen.
+Ein gesetztes ENTGELTATLAS_API_KEY überschreibt diesen Abruf.
 """
 
 from __future__ import annotations
@@ -18,6 +19,11 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+
+try:
+    from .entgeltatlas_client import ClientKeyError, resolve_api_key
+except ImportError:  # Direkter Aufruf: python data/crawler.py
+    from entgeltatlas_client import ClientKeyError, resolve_api_key
 
 API_URL = "https://rest.arbeitsagentur.de/infosysbub/entgeltatlas/pc/v1/entgelte"
 DEFAULT_INPUT = Path(__file__).with_name("berufe_bereinigt.json")
@@ -175,18 +181,18 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--api-key", default=None, help="API-Key; alternativ ENTGELTATLAS_API_KEY")
     parser.add_argument("--timeout", type=float, default=30.0)
     parser.add_argument("--retries", type=int, default=3)
     parser.add_argument("--workers", type=int, default=8)
     args = parser.parse_args()
 
-    import os
-    api_key = args.api_key or os.environ.get("ENTGELTATLAS_API_KEY")
-    if not api_key:
-        parser.error("API-Key fehlt: ENTGELTATLAS_API_KEY setzen oder --api-key verwenden")
     if args.workers < 1 or args.retries < 0:
         parser.error("--workers muss >= 1 und --retries muss >= 0 sein")
+
+    try:
+        api_key = resolve_api_key(timeout=args.timeout)
+    except ClientKeyError as error:
+        parser.error(str(error))
 
     source, berufe = load_source(args.input)
     result = crawl(source, berufe, api_key, args.timeout, args.retries, args.workers)

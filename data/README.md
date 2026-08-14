@@ -9,6 +9,7 @@ Dieses Verzeichnis enthält die beiden unveränderten DKZ-Quelldateien sowie die
 - `create_data.py` – reproduzierbares Erzeugungsprogramm.
 - `catch_source.py` – lädt die beiden offiziellen DKZ-Quelldateien atomar herunter und validiert sie.
 - `main.py` – führt Download, Bereinigung und Entgeltatlas-Crawler als fail-fast Batchkette aus.
+- `entgeltatlas_client.py` – holt den öffentlichen Client-Key aus der Entgeltatlas-Webkonfiguration.
 - `berufe_bereinigt.json` – erzeugtes Ergebnis.
 
 Dotfiles werden nicht als Quelldateien verwendet.
@@ -64,20 +65,25 @@ python3 -m venv .venv
 
 `main.py` führt alle drei Schritte in der richtigen Reihenfolge aus und bricht bei einem Fehler sofort ab:
 
-1. `catch_source.py` lädt und validiert XML/XLSX.
-2. `create_data.py` erzeugt `berufe_bereinigt.json`.
-3. `crawler.py` ergänzt die Entgeltatlas-Werte und schreibt `ega.json`.
+1. `entgeltatlas_client.py` liest den öffentlichen Client-Key aus der aktuellen Entgeltatlas-Webseite.
+2. `catch_source.py` lädt und validiert XML/XLSX.
+3. `create_data.py` erzeugt `berufe_bereinigt.json`.
+4. `crawler.py` ergänzt die Entgeltatlas-Werte und schreibt `ega.json`.
 
-Der API-Key wird ausschließlich zur Laufzeit über die Umgebungsvariable `ENTGELTATLAS_API_KEY` gelesen:
+Der Key wird automatisch geholt. Die vollständige Pipeline kann daher direkt gestartet werden:
 
 ```bash
 cd data
 source .venv/bin/activate
-export ENTGELTATLAS_API_KEY='...'
 python main.py --reference-date 2026-08-14
 ```
 
-Die Batchausgabe zeigt die drei Stufen, Laufzeiten und Unterprozessausgaben. Der Schlüssel selbst wird niemals ausgegeben oder in einer Datei gespeichert. Für eine nichtfarbige Terminalausgabe kann `--plain` ergänzt werden. Optionen wie `--timeout`, `--retries` und `--workers` werden an die jeweiligen Pipeline-Stufen weitergereicht.
+Die Batchausgabe zeigt die drei Stufen, Laufzeiten und Unterprozessausgaben. Der
+Schlüssel selbst wird niemals ausgegeben oder in einer Datei gespeichert. Er wird
+nur im Speicher und in der Umgebung der gestarteten Unterprozesse verwendet. Für
+eine nichtfarbige Terminalausgabe kann `--plain` ergänzt werden. Optionen wie
+`--timeout`, `--retries` und `--workers` werden an die jeweiligen Pipeline-Stufen
+weitergereicht.
 
 ## Liste erzeugen
 
@@ -145,22 +151,34 @@ Der Crawler fragt immer für Deutschland (`r=1`) und die Branche Gesamt (`b=1`) 
 
 Die Werte werden vollständig für jede Kombination aus `geschlecht` (`alle`, `männlich`, `weiblich`) und `altergruppe` (`alle`, `<25`, `25-54`, `>54`) abgelegt. Beispielpfad für den Median von Männern zwischen 25 und 54 Jahren: `beruf.ega.werte.geschlecht.männlich.25-54.median`. Der Crawler verwendet den fünfstelligen KldB-Schlüssel aus `berufskundlicheGattung.codenr`. Die API liefert dafür ohne den Parameter `l` alle vier Altersgruppen und drei Geschlechter der zugehörigen Leistungsstufe.
 
-### API-Key
+### Automatischer API-Key-Client
 
-Der API-Key wird nicht in den Quellcode geschrieben. Er wird zur Laufzeit über eine Umgebungsvariable übergeben:
+Die Entgeltatlas-Webanwendung veröffentlicht ihren Client-Key in der HTML-Konfiguration
+unter `infosysbubLibConfig.clientId`. `entgeltatlas_client.py` lädt deshalb zur Laufzeit:
+
+```text
+https://web.arbeitsagentur.de/entgeltatlas/
+```
+
+und verwendet den gefundenen Wert intern als `X-API-Key` für die offiziellen REST-Anfragen.
+Das ist keine Browser-Session und keine Benutzeranmeldung. Cookies oder persönliche
+Zugangsdaten werden nicht benötigt. Der Key wird nicht ausgegeben, nicht in Dateien
+geschrieben und nicht als CLI-Argument weitergereicht.
+
+Der automatische Abruf kann für Tests oder einen expliziten alternativen Wert durch
+die Umgebungsvariable überschrieben werden:
 
 ```bash
 export ENTGELTATLAS_API_KEY='...'
 ```
 
-Der aktuell von der Entgeltatlas-Webanwendung verwendete öffentliche Client-Key kann aus der geladenen Webseite beziehungsweise deren Konfiguration entnommen werden. Alternativ akzeptiert das Programm `--api-key`.
+Der aktuell von der Entgeltatlas-Webanwendung verwendete öffentliche Client-Key wird aus der geladenen Webseite beziehungsweise deren Konfiguration entnommen.
 
 ### Crawler ausführen
 
 ```bash
 cd data
 source .venv/bin/activate
-export ENTGELTATLAS_API_KEY='...'
 python crawler.py
 ```
 
@@ -168,8 +186,11 @@ Die Ausgabe wird nach `berufe_bereinigt.json`-Daten plus Entgeltwerten in `ega.j
 
 ```bash
 python crawler.py --workers 4 --timeout 60 --retries 5
-python crawler.py --api-key '...' --output ega.json
+python crawler.py --output ega.json
 ```
+
+Der frühere Parameter `--api-key` wurde entfernt, damit Schlüssel nicht in der
+Shell-History oder Prozesslisten erscheinen.
 
 `ega.json` enthält zusätzlich:
 

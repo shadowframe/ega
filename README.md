@@ -124,6 +124,7 @@ Dort werden Quelldateien, Filterregeln, JSON-Strukturen, `.venv`-Einrichtung und
 - `data/main.py` – startet die vollständige Datenpipeline als Batchkette.
 - `data/berufe_bereinigt.json` – Ergebnis der DKZ-Datenaufbereitung.
 - `data/crawler.py` – ruft Entgeltwerte des Entgeltatlas für die KldB-Schlüssel ab.
+- `data/entgeltatlas_client.py` – liest den öffentlichen Client-Key aus der aktuellen Entgeltatlas-Webkonfiguration.
 - `data/ega.json` – Berufeliste mit ergänzten Entgeltatlasdaten.
 - `data/.venv/` – virtuelle Python-Umgebung für die lokalen Skripte.
 
@@ -157,13 +158,28 @@ cd data
 .venv/bin/python create_data.py
 ```
 
-Entgeltatlasdaten abrufen. Der API-Key wird nur zur Laufzeit über die Umgebung gesetzt und nicht in Dateien gespeichert:
+Entgeltatlasdaten abrufen. Der öffentliche Client-Key wird automatisch aus der aktuellen Entgeltatlas-Webseite gelesen. Eine manuelle Eingabe ist nicht erforderlich:
 
 ```bash
 cd data
+.venv/bin/python crawler.py
+```
+
+Auch die vollständige Batchkette (`data/main.py`) holt den Key automatisch, bevor
+die erste Stufe startet. Der Key wird nur im Speicher beziehungsweise in der
+Umgebung der gestarteten Unterprozesse verwendet und niemals ausgegeben oder in
+einer Datei gespeichert.
+
+Für reproduzierbare Tests oder einen abweichenden Client-Key kann die automatische
+Ermittlung optional durch die Umgebungsvariable überschrieben werden:
+
+```bash
 export ENTGELTATLAS_API_KEY='...'
 .venv/bin/python crawler.py
 ```
+
+Der frühere Parameter `--api-key` wird bewusst nicht mehr angeboten, damit der
+Key nicht in Shell-History oder Prozesslisten landet.
 
 Danach kann die TUI erneut gestartet werden:
 
