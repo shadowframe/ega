@@ -19,6 +19,15 @@ from typing import Any
 DEFAULT_DATA = Path(__file__).with_name("data") / "ega.json"
 GENDERS = ("alle", "männlich", "weiblich")
 AGES = ("alle", "<25", "25-54", ">54")
+FILTER_KEYS = {
+    "1": ("gender", 0),
+    "2": ("gender", 1),
+    "3": ("gender", 2),
+    "4": ("age", 0),
+    "5": ("age", 1),
+    "6": ("age", 2),
+    "7": ("age", 3),
+}
 STATUS_VALUES = {-1, -2, -10, -100}
 MAX_VISIBLE_SUGGESTIONS = 8
 
@@ -170,7 +179,7 @@ def draw(window: Any, berufe: list[dict[str, Any]], query: str, suggestions: lis
     # Filter-Chips.
     add_line(window, 5, "FILTER", color(3, curses.A_BOLD))
     add_line(window, 6, f"  ⚥  GESCHLECHT   [{gender:^10}]     ◷  ALTER   [{age:^6}]     ◉  DATEN   {len(suggestions):>4} Treffer", color(6, curses.A_BOLD))
-    add_line(window, 7, "  g Geschlecht   a Alter   Ctrl+U Suche leeren   ↑/↓ Vorschlag   Enter Auswahl   Esc/q Ende", curses.A_DIM)
+    add_line(window, 7, "  1–3 Geschlecht   4–7 Alter   0 Beenden   Ctrl+U Suche leeren   ↑/↓ Vorschlag   Enter Auswahl", curses.A_DIM)
 
     # Suche.
     add_line(window, 9, "⌕  BERUF SUCHEN", color(3, curses.A_BOLD))
@@ -250,16 +259,18 @@ def run_tui(data: dict[str, Any]) -> None:
             selected = max(0, min(selected, max(0, visible_count - 1)))
             draw(window, berufe, query, suggestions, selected, gender_i, age_i, chosen, status)
             key = window.get_wch()
-            if key == "\x1b" or (key in ("q", "Q") and not query):
+            if key == "0" or key == "\x1b" or (key in ("q", "Q") and not query):
                 return
-            if key in ("g", "G") and not query:
-                gender_i = (gender_i + 1) % len(GENDERS)
+            if key in FILTER_KEYS:
+                filter_type, filter_index = FILTER_KEYS[key]
+                if filter_type == "gender":
+                    gender_i = filter_index
+                    status = f"Geschlechtsfilter: {GENDERS[gender_i]}"
+                else:
+                    age_i = filter_index
+                    status = f"Altersfilter: {AGES[age_i]}"
+                selected = 0
                 chosen = None
-                status = "Geschlechtsfilter geändert"
-            elif key in ("a", "A") and not query:
-                age_i = (age_i + 1) % len(AGES)
-                chosen = None
-                status = "Altersfilter geändert"
             elif key in (curses.KEY_UP, "\x10"):
                 selected = max(0, selected - 1)
             elif key in (curses.KEY_DOWN, "\x0e"):

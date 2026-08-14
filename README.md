@@ -52,12 +52,17 @@ Bedienung:
 
 - Text eingeben: Autosuggest nach Berufsbezeichnung filtern
 - `Ctrl+U`: Suchfeld leeren
-- `↑` / `↓`: Vorschlag auswählen
+- `1`: Geschlecht `alle`
+- `2`: Geschlecht `männlich`
+- `3`: Geschlecht `weiblich`
+- `4`: Altersgruppe `alle`
+- `5`: Altersgruppe `<25`
+- `6`: Altersgruppe `25-54`
+- `7`: Altersgruppe `>54`
+- `0`: Anwendung jederzeit beenden
+- `↑` / `↓`: sichtbaren Vorschlag auswählen
 - `Enter`: Datensatz auswählen
-- `g`: Geschlechtsfilter durchschalten, wenn das Suchfeld leer ist
-- `a`: Altersgruppenfilter durchschalten, wenn das Suchfeld leer ist
-- `Esc`: Anwendung beenden
-- `q`: Anwendung bei leerem Suchfeld beenden
+- `Esc` oder `q` bei leerem Suchfeld: Anwendung beenden
 
 Die TUI benötigt keine zusätzlichen Python-Bibliotheken. Sie verwendet ausschließlich die Python-Standardbibliothek, insbesondere `curses`.
 
