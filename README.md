@@ -12,7 +12,7 @@ Dieses Projekt stellt eine terminalbasierte Oberfläche für Berufsdaten und Ent
 - Altersgruppenfilter: `alle`, `<25`, `25-54`, `>54`
 - Anzeige von Median, unterem Quartil und oberem Quartil
 - grafischer Darstellung der Abstände zwischen Q25, Median und Q75
-
+- mehrzeiligem ASCII-Schriftlogo `egaTERM` im Farbschema der Anwendung
 Die Visualisierung stellt den Median als Marker zwischen dem unteren und oberen Quartil dar. Dadurch ist direkt erkennbar, ob der Median näher am unteren oder am oberen Quartil liegt. Die beiden Abstände werden zusätzlich als Eurobeträge angezeigt.
 
 ## Screenshots

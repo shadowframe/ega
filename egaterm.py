@@ -30,6 +30,14 @@ FILTER_KEYS = {
 }
 STATUS_VALUES = {-1, -2, -10, -100}
 MAX_VISIBLE_SUGGESTIONS = 8
+ASCII_LOGO = (
+    " ███████╗ ██████╗  █████╗ ████████╗███████╗██████╗ ███╗   ███╗",
+    " ██╔════╝██╔════╝ ██╔══██╗╚══██╔══╝██╔════╝██╔══██╗████╗ ████║",
+    " █████╗  ██║  ███╗███████║   ██║   █████╗  ██████╔╝██╔████╔██║",
+    " ██╔══╝  ██║   ██║██╔══██║   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║",
+    " ███████╗╚██████╔╝██║  ██║   ██║   ███████╗██║  ██║██║ ╚═╝ ██║",
+    " ╚══════╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝",
+)
 
 
 def has_entgelt_data(metric: dict[str, Any] | None) -> bool:
@@ -162,32 +170,33 @@ def draw(window: Any, berufe: list[dict[str, Any]], query: str, suggestions: lis
     window.erase()
     height, width = window.getmaxyx()
     gender, age = GENDERS[gender_i], AGES[age_i]
-    if height < 20 or width < 78:
-        add_line(window, 0, "EGA Terminal", color(1, curses.A_BOLD))
-        add_line(window, 2, "Bitte Terminal auf mindestens 78 × 20 Zeichen vergrößern.", color(5, curses.A_BOLD))
+    if height < 32 or width < 78:
+        add_line(window, 0, "egaTERM", color(1, curses.A_BOLD))
+        add_line(window, 2, "Bitte Terminal auf mindestens 78 × 32 Zeichen vergrößern.", color(5, curses.A_BOLD))
         add_line(window, 4, f"Aktuell: {width} × {height}", curses.A_DIM)
         add_line(window, height - 2, "Esc/q beendet die Anwendung", curses.A_DIM)
         window.refresh()
         return
 
-    # Header: bewusst großzügig und ruhig, damit die Zahlen den Fokus behalten.
-    add_line(window, 0, "╭" + "─" * (width - 2) + "╮", color(1))
-    add_line(window, 1, "│  ✦  EGA TERMINAL  ·  ENTGELTATLAS", color(1, curses.A_BOLD))
-    add_line(window, 2, "│     Berufliche Entgelte für Deutschland  ·  Branche Gesamt", color(6))
-    add_line(window, 3, "╰" + "─" * (width - 2) + "╯", color(1))
+    # Mehrzeiliges ASCII-Schriftlogo: egaTERM.
+    for logo_row, logo_line in enumerate(ASCII_LOGO):
+        logo_attr = color(1, curses.A_BOLD) if logo_row % 2 == 0 else color(3, curses.A_BOLD)
+        add_line(window, logo_row, logo_line.center(width - 2), logo_attr)
+    add_line(window, 6, "Berufliche Entgelte für Deutschland  ·  Branche Gesamt".center(width - 2), color(6))
+    add_line(window, 7, "─" * (width - 2), color(1))
 
     # Filter-Chips.
-    add_line(window, 5, "FILTER", color(3, curses.A_BOLD))
-    add_line(window, 6, f"  ⚥  GESCHLECHT   [{gender:^10}]     ◷  ALTER   [{age:^6}]     ◉  DATEN   {len(suggestions):>4} Treffer", color(6, curses.A_BOLD))
-    add_line(window, 7, "  1–3 Geschlecht   4–7 Alter   0 Beenden   Ctrl+U Suche leeren   ↑/↓ Vorschlag   Enter Auswahl", curses.A_DIM)
+    add_line(window, 9, "FILTER", color(3, curses.A_BOLD))
+    add_line(window, 10, f"  ⚥  GESCHLECHT   [{gender:^10}]     ◷  ALTER   [{age:^6}]     ◉  DATEN   {len(suggestions):>4} Treffer", color(6, curses.A_BOLD))
+    add_line(window, 11, "  1–3 Geschlecht   4–7 Alter   0 Beenden   Ctrl+U Suche leeren   ↑/↓ Vorschlag   Enter Auswahl", curses.A_DIM)
 
     # Suche.
-    add_line(window, 9, "⌕  BERUF SUCHEN", color(3, curses.A_BOLD))
+    add_line(window, 13, "⌕  BERUF SUCHEN", color(3, curses.A_BOLD))
     search_attr = color(2, curses.A_BOLD)
-    add_line(window, 10, f"  ❯ {query}_", search_attr)
-    add_line(window, 11, "─" * (width - 2), color(1))
+    add_line(window, 14, f"  ❯ {query}_", search_attr)
+    add_line(window, 15, "─" * (width - 2), color(1))
 
-    row = 12
+    row = 16
     add_line(window, row, f"VORSCHLÄGE  ·  {min(len(suggestions), MAX_VISIBLE_SUGGESTIONS)} von {len(suggestions)}", color(3, curses.A_BOLD))
     row += 1
     if suggestions:
