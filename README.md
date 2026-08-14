@@ -41,6 +41,12 @@ Voraussetzung ist Python 3.10 oder neuer. Unter Debian/Ubuntu muss gegebenenfall
 sudo apt install python3-venv
 ```
 
+Falls `python3 -m venv` danach weiterhin mit einer fehlenden `ensurepip`-Komponente abbricht, installiere das versionsspezifische Paket, passend zur installierten Python-Version, zum Beispiel:
+
+```bash
+sudo apt install python3.14-venv
+```
+
 Danach im Projektverzeichnis die virtuelle Umgebung erstellen und aktivieren:
 
 ```bash
