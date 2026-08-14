@@ -129,8 +129,6 @@ export ENTGELTATLAS_API_KEY='...'
 data/.venv/bin/python data/crawler.py
 ```
 
-Der frühere Parameter `--api-key` wird bewusst nicht verwendet, damit der Wert nicht in Shell-History oder Prozesslisten landet.
-
 ## Projektstruktur
 
 ```text
