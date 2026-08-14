@@ -60,9 +60,9 @@ Bedienung:
 - `6`: Altersgruppe `25-54`
 - `7`: Altersgruppe `>54`
 - `0`: Anwendung jederzeit beenden
+- `q`: normales Suchzeichen, keine Beenden-Funktion
 - `↑` / `↓`: sichtbaren Vorschlag auswählen
 - `Enter`: Datensatz auswählen
-- `Esc` oder `q` bei leerem Suchfeld: Anwendung beenden
 
 Die TUI benötigt keine zusätzlichen Python-Bibliotheken. Sie verwendet ausschließlich die Python-Standardbibliothek, insbesondere `curses`.
 

@@ -174,7 +174,7 @@ def draw(window: Any, berufe: list[dict[str, Any]], query: str, suggestions: lis
         add_line(window, 0, "egaTERM", color(1, curses.A_BOLD))
         add_line(window, 2, "Bitte Terminal auf mindestens 78 × 32 Zeichen vergrößern.", color(5, curses.A_BOLD))
         add_line(window, 4, f"Aktuell: {width} × {height}", curses.A_DIM)
-        add_line(window, height - 2, "Esc/q beendet die Anwendung", curses.A_DIM)
+        add_line(window, height - 2, "0 beendet die Anwendung", curses.A_DIM)
         window.refresh()
         return
 
@@ -268,7 +268,7 @@ def run_tui(data: dict[str, Any]) -> None:
             selected = max(0, min(selected, max(0, visible_count - 1)))
             draw(window, berufe, query, suggestions, selected, gender_i, age_i, chosen, status)
             key = window.get_wch()
-            if key == "0" or key == "\x1b" or (key in ("q", "Q") and not query):
+            if key == "0":
                 return
             if key in FILTER_KEYS:
                 filter_type, filter_index = FILTER_KEYS[key]
