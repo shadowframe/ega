@@ -35,7 +35,7 @@ Das Programm benötigt keine externen Python-Pakete. Trotzdem wird eine virtuell
 Mit `uv`:
 
 ```bash
-cd ~/Projekte/ega/data
+cd data
 uv venv .venv
 ```
 
@@ -130,7 +130,7 @@ Der aktuell von der Entgeltatlas-Webanwendung verwendete öffentliche Client-Key
 ### Crawler ausführen
 
 ```bash
-cd ~/Projekte/ega/data
+cd data
 source .venv/bin/activate
 export ENTGELTATLAS_API_KEY='...'
 python crawler.py

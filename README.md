@@ -2,6 +2,17 @@
 
 Dieses Projekt stellt eine terminalbasierte Oberfläche für Berufsdaten und Entgeltinformationen des Entgeltatlas der Bundesagentur für Arbeit bereit.
 
+## Projekt beziehen
+
+Das Repository kann in ein frei wählbares Arbeitsverzeichnis geklont werden:
+
+```bash
+git clone https://github.com/shadowframe/ega.git
+cd ega
+```
+
+Alle folgenden Befehle werden aus dem Projektverzeichnis ausgeführt.
+
 ## Terminal-Anwendung `egaterm.py`
 
 `egaterm.py` lädt `data/ega.json` und bietet eine interaktive TUI mit:
@@ -50,7 +61,6 @@ sudo apt install python3.14-venv
 Danach im Projektverzeichnis die virtuelle Umgebung erstellen und aktivieren:
 
 ```bash
-cd ~/Projekte/ega
 python3 -m venv data/.venv
 source data/.venv/bin/activate
 ```
@@ -64,7 +74,6 @@ python egaterm.py
 Alternativ kann die Umgebung auch ohne Aktivierung direkt verwendet werden:
 
 ```bash
-cd ~/Projekte/ega
 data/.venv/bin/python egaterm.py
 ```
 
@@ -142,14 +151,14 @@ egaterm.py
 Bereinigte Berufeliste erstellen:
 
 ```bash
-cd ~/Projekte/ega/data
+cd data
 .venv/bin/python create_data.py
 ```
 
 Entgeltatlasdaten abrufen. Der API-Key wird nur zur Laufzeit über die Umgebung gesetzt und nicht in Dateien gespeichert:
 
 ```bash
-cd ~/Projekte/ega/data
+cd data
 export ENTGELTATLAS_API_KEY='...'
 .venv/bin/python crawler.py
 ```
@@ -157,7 +166,6 @@ export ENTGELTATLAS_API_KEY='...'
 Danach kann die TUI erneut gestartet werden:
 
 ```bash
-cd ~/Projekte/ega
 data/.venv/bin/python egaterm.py
 ```
 
