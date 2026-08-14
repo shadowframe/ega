@@ -1,0 +1,12 @@
+# Python runtime artifacts
+__pycache__/
+*.py[cod]
+.venv/
+**/.venv/
+
+# OS metadata
+.DS_Store
+._*
+
+# Local Hermes session history
+history.md
