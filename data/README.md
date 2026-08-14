@@ -96,8 +96,6 @@ export ENTGELTATLAS_API_KEY='...'
 data/.venv/bin/python data/crawler.py
 ```
 
-Der alte Parameter `--api-key` ist absichtlich entfernt. Ein Key als Kommandozeilenargument kann in der Shell-History oder in Prozesslisten auftauchen.
-
 ## Einzelne Schritte
 
 ### Berufeliste neu erzeugen
