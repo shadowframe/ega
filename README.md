@@ -120,6 +120,8 @@ Dort werden Quelldateien, Filterregeln, JSON-Strukturen, `.venv`-Einrichtung und
 - `data/DKZ_Berufe_Zuordnung_Berufsgattung.xlsx` – Zuordnung von Berufen zu berufskundlichen Gruppen und KldB-Berufsgattungen.
 - `data/DKZ_alle_Berufe_gueltig_ungueltig.xml` – vollständige DKZ-Berufeliste mit Zuständen und Gültigkeitsdaten.
 - `data/create_data.py` – erzeugt aus XLSX und XML die bereinigte Berufeliste.
+- `data/catch_source.py` – lädt die offiziellen DKZ-Quelldateien.
+- `data/main.py` – startet die vollständige Datenpipeline als Batchkette.
 - `data/berufe_bereinigt.json` – Ergebnis der DKZ-Datenaufbereitung.
 - `data/crawler.py` – ruft Entgeltwerte des Entgeltatlas für die KldB-Schlüssel ab.
 - `data/ega.json` – Berufeliste mit ergänzten Entgeltatlasdaten.

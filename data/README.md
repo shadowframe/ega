@@ -7,6 +7,8 @@ Dieses Verzeichnis enthält die beiden unveränderten DKZ-Quelldateien sowie die
 - `DKZ_Berufe_Zuordnung_Berufsgattung.xlsx` – Zuordnung der Berufe zu den berufskundlichen Gruppen und Angabe des berufskundlichen Typs.
 - `DKZ_alle_Berufe_gueltig_ungueltig.xml` – vollständige DKZ-Berufeliste einschließlich Zuständen und Gültigkeitszeiträumen.
 - `create_data.py` – reproduzierbares Erzeugungsprogramm.
+- `catch_source.py` – lädt die beiden offiziellen DKZ-Quelldateien atomar herunter und validiert sie.
+- `main.py` – führt Download, Bereinigung und Entgeltatlas-Crawler als fail-fast Batchkette aus.
 - `berufe_bereinigt.json` – erzeugtes Ergebnis.
 
 Dotfiles werden nicht als Quelldateien verwendet.
@@ -16,6 +18,13 @@ Dotfiles werden nicht als Quelldateien verwendet.
 Die beiden DKZ-Dateien stammen aus dem Downloadportal der Bundesagentur für Arbeit, Bereich „Berufe“:
 
 [DKZ-Downloadportal – Berufe](https://www.arbeitsagentur.de/institutionen/dkz-downloadportal#Berufe)
+
+Die automatisierte Beschaffung verwendet direkt diese offiziellen REST-URLs:
+
+- XML: `https://rest.arbeitsagentur.de/infosysbub/download-portal-rest/ct/dkz-downloads/DKZ_alle_Berufe_gueltig_ungueltig.xml`
+- XLSX: `https://rest.arbeitsagentur.de/infosysbub/download-portal-rest/ct/dkz-downloads/DKZ_Berufe_Zuordnung_Berufsgattung.xlsx`
+
+`catch_source.py` schreibt die Antworten zunächst in temporäre `.part`-Dateien, validiert XML bzw. XLSX und ersetzt die bisherigen Quelldateien erst danach atomar.
 
 ## Angewendete Filter
 
@@ -50,6 +59,25 @@ Alternativ – sofern das Betriebssystemmodul für virtuelle Umgebungen installi
 ```bash
 python3 -m venv .venv
 ```
+
+## Gesamte Batchkette
+
+`main.py` führt alle drei Schritte in der richtigen Reihenfolge aus und bricht bei einem Fehler sofort ab:
+
+1. `catch_source.py` lädt und validiert XML/XLSX.
+2. `create_data.py` erzeugt `berufe_bereinigt.json`.
+3. `crawler.py` ergänzt die Entgeltatlas-Werte und schreibt `ega.json`.
+
+Der API-Key wird ausschließlich zur Laufzeit über die Umgebungsvariable `ENTGELTATLAS_API_KEY` gelesen:
+
+```bash
+cd data
+source .venv/bin/activate
+export ENTGELTATLAS_API_KEY='...'
+python main.py --reference-date 2026-08-14
+```
+
+Die Batchausgabe zeigt die drei Stufen, Laufzeiten und Unterprozessausgaben. Der Schlüssel selbst wird niemals ausgegeben oder in einer Datei gespeichert. Für eine nichtfarbige Terminalausgabe kann `--plain` ergänzt werden. Optionen wie `--timeout`, `--retries` und `--workers` werden an die jeweiligen Pipeline-Stufen weitergereicht.
 
 ## Liste erzeugen
 
